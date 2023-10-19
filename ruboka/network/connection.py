@@ -1,6 +1,6 @@
 from aiohttp import ClientSession
 
-BASE_URL = "https://messengerg2c217.iranlms.ir/"
+BASE_URL = "https://messengerg2c217.iranlms.ir"
 
 
 class Connection:
@@ -23,3 +23,7 @@ class Connection:
         self.is_started = False
         await self.client_session.close()
         self.client_session = None
+
+    async def request(self, method, json=None):
+        async with self.client_session.request(method, self.base_url, json=json, timeout=self.timeout) as response:
+            return response
