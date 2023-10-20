@@ -47,9 +47,10 @@ class Encryption:
 
     def __init__(self, auth: str, private_key: str):
         self.auth = auth
+        self.changed_auth = self.change_auth_type(auth)
         self.private_key = private_key
         self.decoded_private_key = loads(b64decode(private_key).decode('utf-8'))['d']
-        self.key = bytearray(self.secret(auth), "UTF-8")
+        self.key = bytearray(self.secret(self.changed_auth), "UTF-8")
         self.keypair = RSA.import_key(self.decoded_private_key.encode("utf-8"))
 
     def secret(self, e):
