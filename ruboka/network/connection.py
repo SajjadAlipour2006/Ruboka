@@ -6,7 +6,7 @@ from ..crypto import Encryption
 
 
 class Connection:
-    URL = "https://messengerg2c217.iranlms.ir"
+    URL = "https://messengerg2c208.iranlms.ir"
     PLATFORM = "web.rubika.ir"
     USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/113.0"
     CLIENT = {
@@ -37,7 +37,7 @@ class Connection:
         await self.client_session.close()
         self.client_session = None
 
-    async def post(self, method, data=None):
+    async def post(self, method, input=None):
         headers = {
             "Origin": f"https://{self.PLATFORM}",
             "Referer": f"https://{self.PLATFORM}/",
@@ -49,15 +49,17 @@ class Connection:
             "auth": self.crypto.auth,
             "data_enc": {
                 "method": method,
-                "input": data,
+                "input": input,
                 "client": self.CLIENT
             }
         }
+        print("ruboka1 =", dumps(json, indent=4))
         json["data_enc"] = self.crypto.encrypt(dumps(json["data_enc"]))
         json["sign"] = self.crypto.make_sign_from_data(json["data_enc"])
+        print("ruboka2 =", dumps(json, indent=4))
         async with self.client_session.post(
                 self.url,
-                json={},
+                json=json,
                 timeout=self.timeout,
                 headers=headers
         ) as response:
