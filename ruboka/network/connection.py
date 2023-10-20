@@ -1,14 +1,27 @@
+from json import dumps, loads
+
 from aiohttp import ClientSession
 
-BASE_URL = "https://messengerg2c217.iranlms.ir"
+from ..crypto import Encryption
 
 
 class Connection:
+    URL = "https://messengerg2c217.iranlms.ir"
+    PLATFORM = "web.rubika.ir"
+    USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/113.0"
+    CLIENT = {
+        "app_name": "Main",
+        "app_version": "4.3.3",
+        "platform": "Web",
+        "package": "web.rubika.ir",
+        "lang_code": "fa"
+    }
 
-    def __init__(self, timeout=20, base_url=None):
+    def __init__(self, auth, private_key, timeout=20, url=None):
+        self.crypto = Encryption(auth, private_key)
         self.client_session = None
         self.timeout = timeout
-        self.base_url = base_url or BASE_URL
+        self.url = url or self.URL
         self.is_started = False
 
     async def start(self):
@@ -24,6 +37,33 @@ class Connection:
         await self.client_session.close()
         self.client_session = None
 
-    async def request(self, method, json=None):
-        async with self.client_session.request(method, self.base_url, json=json, timeout=self.timeout) as response:
-            return response
+    async def post(self, method, data=None):
+        headers = {
+            "Origin": f"https://{self.PLATFORM}",
+            "Referer": f"https://{self.PLATFORM}/",
+            "Host": self.url.replace("https://", ""),
+            "User-Agent": self.USER_AGENT
+        }
+        json = {
+            "api_version": "6",
+            "auth": self.crypto.auth,
+            "data_enc": {
+                "method": method,
+                "input": data,
+                "client": self.CLIENT
+            }
+        }
+        json["data_enc"] = self.crypto.encrypt(dumps(json["data_enc"]))
+        json["sign"] = self.crypto.make_sign_from_data(json["data_enc"])
+        async with self.client_session.post(
+                self.url,
+                json={},
+                timeout=self.timeout,
+                headers=headers
+        ) as response:
+            if not response.ok:
+                raise Exception(await response.text())
+            response_json = await response.json()
+            if "data_enc" in response_json:
+                response_json = loads(str(self.crypto.decrypt(response_json["data_enc"])))
+            return response_json
