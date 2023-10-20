@@ -8,13 +8,7 @@ from Crypto.Util.Padding import pad, unpad
 
 
 class Encryption:
-    IV = b'\x00' * 16
-
-    def __init__(self, auth: str, private_key: str = None):
-        self.auth = auth
-        self.key = bytearray(self.secret(auth), "UTF-8")
-        if private_key:
-            self.keypair = RSA.import_key(private_key.encode("utf-8"))
+    IV = b"\x00" * 16
 
     @staticmethod
     def replace_char_at(e, t, i):
@@ -37,40 +31,6 @@ class Encryption:
                 n += s
         return n
 
-    def secret(self, e):
-        t = e[0:8]
-        i = e[8:16]
-        n = e[16:24] + t + e[24:32] + i
-        s = 0
-        while s < len(n):
-            e = n[s]
-            if "0" <= e <= "9":
-                t = chr((ord(e[0]) - ord('0') + 5) % 10 + ord('0'))
-                n = self.replace_char_at(n, s, t)
-            else:
-                t = chr((ord(e[0]) - ord('a') + 9) % 26 + ord('a'))
-                n = self.replace_char_at(n, s, t)
-            s += 1
-        return n
-
-    def encrypt(self, text):
-        raw = pad(text.encode('UTF-8'), AES.block_size)
-        aes = AES.new(self.key, AES.MODE_CBC, self.IV)
-        enc = aes.encrypt(raw)
-        result = base64.b64encode(enc).decode('UTF-8')
-        return result
-
-    def decrypt(self, text):
-        aes = AES.new(self.key, AES.MODE_CBC, self.IV)
-        dec = aes.decrypt(base64.urlsafe_b64decode(text.encode('UTF-8')))
-        result = unpad(dec, AES.block_size).decode('UTF-8')
-        return result
-
-    def make_sign_from_data(self, data_enc: str):
-        sha_data = SHA256.new(data_enc.encode("utf-8"))
-        signature = pkcs1_15.new(self.keypair).sign(sha_data)
-        return base64.b64encode(signature).decode("utf-8")
-
     @staticmethod
     def decrypt_rsa_oaep(private: str, data_enc: str):
         key_pair = RSA.import_key(private.encode("utf-8"))
@@ -82,3 +42,42 @@ class Encryption:
         public = Encryption.change_auth_type(base64.b64encode(key_pair.publickey().export_key()).decode("utf-8"))
         private = key_pair.export_key().decode("utf-8")
         return public, private
+
+    def __init__(self, auth: str, private_key: str):
+        self.auth = auth
+        self.key = bytearray(self.secret(auth), "UTF-8")
+        self.keypair = RSA.import_key(private_key.encode("utf-8"))
+
+    def secret(self, e):
+        t = e[0:8]
+        i = e[8:16]
+        n = e[16:24] + t + e[24:32] + i
+        s = 0
+        while s < len(n):
+            e = n[s]
+            if "0" <= e <= "9":
+                t = chr((ord(e[0]) - ord("0") + 5) % 10 + ord("0"))
+                n = self.replace_char_at(n, s, t)
+            else:
+                t = chr((ord(e[0]) - ord("a") + 9) % 26 + ord("a"))
+                n = self.replace_char_at(n, s, t)
+            s += 1
+        return n
+
+    def encrypt(self, text):
+        raw = pad(text.encode("UTF-8"), AES.block_size)
+        aes = AES.new(self.key, AES.MODE_CBC, self.IV)
+        enc = aes.encrypt(raw)
+        result = base64.b64encode(enc).decode("UTF-8")
+        return result
+
+    def decrypt(self, text):
+        aes = AES.new(self.key, AES.MODE_CBC, self.IV)
+        dec = aes.decrypt(base64.urlsafe_b64decode(text.encode("UTF-8")))
+        result = unpad(dec, AES.block_size).decode("UTF-8")
+        return result
+
+    def make_sign_from_data(self, data_enc: str):
+        sha_data = SHA256.new(data_enc.encode("utf-8"))
+        signature = pkcs1_15.new(self.keypair).sign(sha_data)
+        return base64.b64encode(signature).decode("utf-8")
