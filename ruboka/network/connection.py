@@ -61,9 +61,9 @@ class Connection:
                 timeout=self.timeout,
                 headers=headers
         ) as response:
-            if not response.ok:
-                raise Exception(await response.text())
             response_json = await response.json()
             if "data_enc" in response_json:
                 response_json = loads(str(self.crypto.decrypt(response_json["data_enc"])))
+            if response_json.get("status") != "OK":
+                raise Exception(response_json.get("status_det"))
             return response_json
