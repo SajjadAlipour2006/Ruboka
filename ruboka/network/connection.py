@@ -6,12 +6,12 @@ from ..crypto import Encryption
 
 
 class Connection:
-    URL = "https://messengerg2c208.iranlms.ir"
+    URL = "https://messengerg2c149.iranlms.ir"
     PLATFORM = "web.rubika.ir"
-    USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/113.0"
+    USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36"
     CLIENT = {
         "app_name": "Main",
-        "app_version": "4.3.3",
+        "app_version": "4.4.5",
         "platform": "Web",
         "package": "web.rubika.ir",
         "lang_code": "fa"
@@ -53,10 +53,8 @@ class Connection:
                 "client": self.CLIENT
             }
         }
-        print("ruboka1 =", dumps(json, indent=4))
         json["data_enc"] = self.crypto.encrypt(dumps(json["data_enc"]))
         json["sign"] = self.crypto.make_sign_from_data(json["data_enc"])
-        print("ruboka2 =", dumps(json, indent=4))
         async with self.client_session.post(
                 self.url,
                 json=json,
