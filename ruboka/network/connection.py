@@ -8,25 +8,13 @@ from ..crypto import Encryption
 class Connection:
     TIMEOUT = 20
     URL = "https://messengerg2c149.iranlms.ir"
-    PLATFORM = "web.rubika.ir"
-    USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36"
-    CLIENT = {
-        "app_name": "Main",
-        "app_version": "4.4.5",
-        "platform": "Web",
-        "package": "web.rubika.ir",
-        "lang_code": "fa"
-    }
 
-    def __init__(self, auth, private_key, timeout=None, url=None, platform=None, user_agent=None, client=None):
+    def __init__(self, auth, private_key, timeout=None, url=None):
         self.crypto = Encryption(auth, private_key)
         self.client_session = None
         self.is_started = False
         self.timeout = timeout or self.TIMEOUT
         self.url = url or self.URL
-        self.platform = platform or self.PLATFORM
-        self.user_agent = user_agent or self.USER_AGENT
-        self.client = client or self.CLIENT
 
     async def start(self):
         if self.is_started:
@@ -41,20 +29,14 @@ class Connection:
         await self.client_session.close()
         self.client_session = None
 
-    async def post(self, method, input=None):
-        headers = {
-            "Origin": f"https://{self.platform}",
-            "Referer": f"https://{self.platform}/",
-            "Host": self.url.replace("https://", ""),
-            "User-Agent": self.user_agent
-        }
+    async def post(self, api_version, method, input, client, **kwargs):
         json = {
-            "api_version": "6",
+            "api_version": api_version,
             "auth": self.crypto.auth,
             "data_enc": {
                 "method": method,
                 "input": input,
-                "client": self.client
+                "client": client
             }
         }
         json["data_enc"] = self.crypto.encrypt(dumps(json["data_enc"]))
@@ -63,7 +45,7 @@ class Connection:
                 self.url,
                 json=json,
                 timeout=self.timeout,
-                headers=headers
+                **kwargs
         ) as response:
             response_json = await response.json()
             if "data_enc" in response_json:
