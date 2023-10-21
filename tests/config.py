@@ -1,0 +1,2 @@
+AUTH = ""
+PRIVATE_KEY = ""
