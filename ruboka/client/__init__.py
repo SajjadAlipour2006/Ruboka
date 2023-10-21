@@ -1,1 +1,1 @@
-from .client import Clinet
+from .client import Client

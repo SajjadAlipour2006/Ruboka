@@ -1,7 +1,7 @@
 from ..network import Connection
 
 
-class Clinet:
+class Client:
 
     def __init__(
             self,
