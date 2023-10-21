@@ -6,6 +6,7 @@ from ..crypto import Encryption
 
 
 class Connection:
+    TIMEOUT = 20
     URL = "https://messengerg2c149.iranlms.ir"
     PLATFORM = "web.rubika.ir"
     USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36"
@@ -17,12 +18,15 @@ class Connection:
         "lang_code": "fa"
     }
 
-    def __init__(self, auth, private_key, timeout=20, url=None):
+    def __init__(self, auth, private_key, timeout=None, url=None, platform=None, user_agent=None, client=None):
         self.crypto = Encryption(auth, private_key)
         self.client_session = None
-        self.timeout = timeout
-        self.url = url or self.URL
         self.is_started = False
+        self.timeout = timeout or self.TIMEOUT
+        self.url = url or self.URL
+        self.platform = platform or self.PLATFORM
+        self.user_agent = user_agent or self.USER_AGENT
+        self.client = client or self.CLIENT
 
     async def start(self):
         if self.is_started:
@@ -39,10 +43,10 @@ class Connection:
 
     async def post(self, method, input=None):
         headers = {
-            "Origin": f"https://{self.PLATFORM}",
-            "Referer": f"https://{self.PLATFORM}/",
+            "Origin": f"https://{self.platform}",
+            "Referer": f"https://{self.platform}/",
             "Host": self.url.replace("https://", ""),
-            "User-Agent": self.USER_AGENT
+            "User-Agent": self.user_agent
         }
         json = {
             "api_version": "6",
@@ -50,7 +54,7 @@ class Connection:
             "data_enc": {
                 "method": method,
                 "input": input,
-                "client": self.CLIENT
+                "client": self.client
             }
         }
         json["data_enc"] = self.crypto.encrypt(dumps(json["data_enc"]))
