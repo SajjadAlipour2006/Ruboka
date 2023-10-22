@@ -1,8 +1,10 @@
 from ..network import Connection
+from .chats import Chats
 from .messages import Messages
+from .users import Users
 
 
-class Client(Messages):
+class Client(Chats, Messages, Users):
     API_VERSION = "6"
     PLATFORM = "web.rubika.ir"
     USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36"
@@ -54,4 +56,5 @@ class Client(Messages):
             "Host": self.connection.url.replace("https://", ""),
             "User-Agent": self.user_agent
         }
-        return await self.connection.post(self.api_version, method, input, self.client, headers=headers)
+        response = await self.connection.post(self.api_version, method, input, self.client, headers=headers)
+        return response.get("data")
