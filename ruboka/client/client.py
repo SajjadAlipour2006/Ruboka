@@ -1,10 +1,11 @@
 from ..network import Connection
 from .chats import Chats
+from .groups import Groups
 from .messages import Messages
 from .users import Users
 
 
-class Client(Chats, Messages, Users):
+class Client(Groups, Chats, Messages, Users):
     API_VERSION = "6"
     PLATFORM = "web.rubika.ir"
     USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36"
